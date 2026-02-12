@@ -1,0 +1,51 @@
+# Build stage
+FROM node:22-alpine AS builder
+
+RUN corepack enable && corepack prepare pnpm@latest --activate
+
+WORKDIR /app
+
+# Copy package files
+COPY package.json pnpm-workspace.yaml pnpm-lock.yaml ./
+COPY packages/bot/package.json ./packages/bot/
+COPY packages/db/package.json ./packages/db/
+COPY packages/common/package.json ./packages/common/
+
+# Install dependencies
+RUN pnpm install --frozen-lockfile
+
+# Copy source
+COPY packages/common ./packages/common
+COPY packages/db ./packages/db
+COPY packages/bot ./packages/bot
+
+# Build packages
+RUN pnpm --filter @kedon/common build
+RUN pnpm --filter @kedon/db build
+RUN pnpm --filter @kedon/bot build
+
+# Production stage
+FROM node:22-alpine AS runner
+
+RUN corepack enable && corepack prepare pnpm@latest --activate
+
+WORKDIR /app
+
+# Copy built files and node_modules
+COPY --from=builder /app/node_modules ./node_modules
+COPY --from=builder /app/packages/common/dist ./packages/common/dist
+COPY --from=builder /app/packages/common/package.json ./packages/common/
+COPY --from=builder /app/packages/db/dist ./packages/db/dist
+COPY --from=builder /app/packages/db/package.json ./packages/db/
+COPY --from=builder /app/packages/db/node_modules ./packages/db/node_modules
+COPY --from=builder /app/packages/bot/dist ./packages/bot/dist
+COPY --from=builder /app/packages/bot/package.json ./packages/bot/
+
+# Create data directory
+RUN mkdir -p /app/data
+
+ENV NODE_ENV=production
+ENV DATABASE_URL=file:/app/data/kedon.db
+
+WORKDIR /app/packages/bot
+CMD ["node", "dist/index.js"]

@@ -1,0 +1,4 @@
+trustedDependencies:
+  - better-sqlite3
+  - esbuild
+  - sharp

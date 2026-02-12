@@ -1,0 +1,32 @@
+{
+  "name": "kedon",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "dev": "turbo run dev",
+    "dev:bot": "turbo run dev --filter=@kedon/bot",
+    "dev:web": "turbo run dev --filter=@kedon/web",
+    "build": "turbo run build",
+    "lint": "turbo run lint",
+    "db:generate": "turbo run db:generate --filter=@kedon/db",
+    "db:push": "turbo run db:push --filter=@kedon/db",
+    "db:studio": "turbo run db:studio --filter=@kedon/db",
+    "deploy:commands": "turbo run deploy:commands --filter=@kedon/bot"
+  },
+  "devDependencies": {
+    "turbo": "^2.5.4",
+    "typescript": "^5.8.3"
+  },
+  "packageManager": "pnpm@10.5.2",
+  "engines": {
+    "node": ">=20"
+  },
+  "pnpm": {
+    "onlyBuiltDependencies": [
+      "better-sqlite3",
+      "esbuild",
+      "sharp"
+    ]
+  }
+}
