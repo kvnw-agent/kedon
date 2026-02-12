@@ -19,7 +19,7 @@ COPY packages/common ./packages/common
 COPY packages/db ./packages/db
 COPY packages/bot ./packages/bot
 
-# Build packages
+# Build packages in order
 RUN pnpm --filter @kedon/common build
 RUN pnpm --filter @kedon/db build
 RUN pnpm --filter @kedon/bot build
@@ -42,10 +42,13 @@ COPY --from=builder /app/packages/bot/dist ./packages/bot/dist
 COPY --from=builder /app/packages/bot/package.json ./packages/bot/
 
 # Create data directory
-RUN mkdir -p /app/data
+RUN mkdir -p /app/data && chown -R node:node /app/data
 
 ENV NODE_ENV=production
 ENV DATABASE_URL=file:/app/data/kedon.db
+
+# Switch to non-root user
+USER node
 
 WORKDIR /app/packages/bot
 CMD ["node", "dist/index.js"]

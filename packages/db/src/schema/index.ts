@@ -38,11 +38,37 @@ export const moderationLogs = sqliteTable('moderation_logs', {
     .references(() => guilds.id, { onDelete: 'cascade' }),
   userId: text('user_id').notNull(),
   moderatorId: text('moderator_id').notNull(),
-  action: text('action', { enum: ['kick', 'ban', 'mute', 'warn', 'unmute', 'unban'] }).notNull(),
+  action: text('action', { enum: ['kick', 'ban', 'mute', 'warn', 'unmute', 'unban', 'purge'] }).notNull(),
   reason: text('reason'),
+  duration: integer('duration'), // Duration in seconds for mutes
   createdAt: integer('created_at', { mode: 'timestamp' })
     .notNull()
     .default(sql`(unixepoch())`),
+});
+
+// Warnings table (separate from logs for easy querying)
+export const warnings = sqliteTable('warnings', {
+  id: integer('id').primaryKey({ autoIncrement: true }),
+  guildId: text('guild_id')
+    .notNull()
+    .references(() => guilds.id, { onDelete: 'cascade' }),
+  userId: text('user_id').notNull(),
+  moderatorId: text('moderator_id').notNull(),
+  reason: text('reason').notNull(),
+  active: integer('active', { mode: 'boolean' }).notNull().default(true),
+  createdAt: integer('created_at', { mode: 'timestamp' })
+    .notNull()
+    .default(sql`(unixepoch())`),
+});
+
+// Daily rewards tracking
+export const dailyRewards = sqliteTable('daily_rewards', {
+  id: integer('id').primaryKey({ autoIncrement: true }),
+  discordId: text('discord_id').notNull().unique(),
+  lastClaimed: integer('last_claimed', { mode: 'timestamp' })
+    .notNull()
+    .default(sql`(unixepoch())`),
+  streak: integer('streak').notNull().default(1),
 });
 
 // Type exports
@@ -54,3 +80,7 @@ export type User = typeof users.$inferSelect;
 export type NewUser = typeof users.$inferInsert;
 export type ModerationLog = typeof moderationLogs.$inferSelect;
 export type NewModerationLog = typeof moderationLogs.$inferInsert;
+export type Warning = typeof warnings.$inferSelect;
+export type NewWarning = typeof warnings.$inferInsert;
+export type DailyReward = typeof dailyRewards.$inferSelect;
+export type NewDailyReward = typeof dailyRewards.$inferInsert;

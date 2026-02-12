@@ -4,7 +4,6 @@ import { signIn, useSession } from 'next-auth/react';
 import { useRouter } from 'next/navigation';
 import { useEffect } from 'react';
 import { Button } from '@/components/ui/button';
-import { Bot, Zap, Shield, Settings } from 'lucide-react';
 
 export default function Home() {
   const { data: session, status } = useSession();
@@ -18,68 +17,49 @@ export default function Home() {
 
   if (status === 'loading') {
     return (
-      <div className="flex min-h-screen items-center justify-center">
-        <div className="animate-spin rounded-full h-8 w-8 border-t-2 border-b-2 border-primary"></div>
+      <div className="flex min-h-screen items-center justify-center bg-grid">
+        <div className="h-1 w-8 bg-primary/50 animate-pulse" />
       </div>
     );
   }
 
   return (
-    <div className="min-h-screen">
-      {/* Hero */}
-      <div className="relative overflow-hidden">
-        <div className="mx-auto max-w-7xl px-6 py-24 sm:py-32 lg:px-8">
-          <div className="text-center">
-            <div className="flex justify-center mb-6">
-              <div className="rounded-full bg-primary/10 p-4">
-                <Bot className="h-16 w-16 text-primary" />
-              </div>
-            </div>
-            <h1 className="text-4xl font-bold tracking-tight sm:text-6xl">
-              <span className="text-primary">Kedon</span> Discord Bot
-            </h1>
-            <p className="mt-6 text-lg leading-8 text-muted-foreground max-w-2xl mx-auto">
-              A powerful, modular Discord bot with moderation, economy, leveling, and more.
-              Fully customizable through the web dashboard.
-            </p>
-            <div className="mt-10 flex items-center justify-center gap-x-6">
-              <Button size="lg" onClick={() => signIn('discord')}>
-                Login with Discord
-              </Button>
-              <Button variant="outline" size="lg" asChild>
-                <a href="https://github.com/kvnw-agent/kedon" target="_blank" rel="noopener noreferrer">
-                  View on GitHub
-                </a>
-              </Button>
-            </div>
-          </div>
-        </div>
-      </div>
+    <div className="relative min-h-screen bg-grid overflow-hidden">
+      {/* Gradient overlay */}
+      <div className="absolute inset-0 bg-gradient-to-b from-transparent via-background/50 to-background pointer-events-none" />
+      
+      {/* Subtle radial glow */}
+      <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[600px] h-[600px] bg-primary/5 rounded-full blur-3xl pointer-events-none" />
 
-      {/* Features */}
-      <div className="mx-auto max-w-7xl px-6 py-16 lg:px-8">
-        <div className="grid grid-cols-1 gap-8 md:grid-cols-3">
-          <div className="rounded-xl border bg-card p-6">
-            <Shield className="h-10 w-10 text-primary mb-4" />
-            <h3 className="text-lg font-semibold">Moderation</h3>
-            <p className="mt-2 text-muted-foreground">
-              Kick, ban, mute, and warn users. Full moderation logging.
-            </p>
-          </div>
-          <div className="rounded-xl border bg-card p-6">
-            <Zap className="h-10 w-10 text-primary mb-4" />
-            <h3 className="text-lg font-semibold">Economy & Leveling</h3>
-            <p className="mt-2 text-muted-foreground">
-              Virtual currency, daily rewards, and XP progression system.
-            </p>
-          </div>
-          <div className="rounded-xl border bg-card p-6">
-            <Settings className="h-10 w-10 text-primary mb-4" />
-            <h3 className="text-lg font-semibold">Fully Modular</h3>
-            <p className="mt-2 text-muted-foreground">
-              Enable or disable features per-server via the dashboard.
-            </p>
-          </div>
+      {/* Content */}
+      <div className="relative flex flex-col items-center justify-center min-h-screen px-6">
+        {/* Logo/Wordmark */}
+        <div className="animate-fade-in">
+          <h1 className="font-mono text-4xl font-semibold tracking-tight">
+            <span className="text-primary">kedon</span>
+          </h1>
+        </div>
+
+        {/* Tagline */}
+        <p className="mt-4 text-muted-foreground text-center max-w-md animate-fade-in-delay-1 font-mono text-sm">
+          modular discord bot. manage your server.
+        </p>
+
+        {/* Login Button */}
+        <div className="mt-10 animate-fade-in-delay-2">
+          <Button 
+            onClick={() => signIn('discord')}
+            className="font-mono text-sm px-6 py-5 bg-primary/10 text-primary border border-primary/20 hover:bg-primary/20 hover:border-primary/40 transition-all"
+          >
+            login with discord
+          </Button>
+        </div>
+
+        {/* Footer hint */}
+        <div className="absolute bottom-8 left-0 right-0 flex justify-center animate-fade-in-delay-3">
+          <span className="font-mono text-xs text-muted-foreground/50">
+            v0.1.0
+          </span>
         </div>
       </div>
     </div>

@@ -2,11 +2,8 @@ import { getServerSession } from 'next-auth';
 import { redirect } from 'next/navigation';
 import { authOptions } from '@/lib/auth';
 import { MODULES, type ModuleName } from '@kedon/common';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { Switch } from '@/components/ui/switch';
-import { Button } from '@/components/ui/button';
 import Link from 'next/link';
-import { ArrowLeft } from 'lucide-react';
+import { ModuleToggle } from './module-toggle';
 
 interface Props {
   params: Promise<{ guildId: string }>;
@@ -30,60 +27,67 @@ export default async function GuildSettingsPage({ params }: Props) {
     utility: true,
   };
 
+  const moduleEntries = Object.entries(MODULES) as [ModuleName, typeof MODULES[ModuleName]][];
+
   return (
-    <div className="min-h-screen">
-      {/* Header */}
-      <header className="border-b">
-        <div className="mx-auto max-w-7xl px-6 py-4 flex items-center gap-4">
-          <Button variant="ghost" size="icon" asChild>
-            <Link href="/dashboard">
-              <ArrowLeft className="h-4 w-4" />
-            </Link>
-          </Button>
-          <div>
-            <h1 className="text-xl font-bold">Server Settings</h1>
-            <p className="text-sm text-muted-foreground">Guild ID: {guildId}</p>
+    <div className="min-h-screen bg-grid">
+      {/* Gradient overlay */}
+      <div className="fixed inset-0 bg-gradient-to-b from-transparent via-background/30 to-background pointer-events-none" />
+      
+      <div className="relative max-w-2xl mx-auto px-6 py-8">
+        {/* Header */}
+        <header className="flex items-center gap-2 pb-6 mb-8 border-b border-border animate-fade-in">
+          <Link href="/" className="font-mono text-lg font-semibold text-primary hover:opacity-80 transition-opacity">
+            kedon
+          </Link>
+          <span className="text-muted-foreground/30">/</span>
+          <Link href="/dashboard" className="font-mono text-sm text-muted-foreground hover:text-foreground transition-colors">
+            dashboard
+          </Link>
+          <span className="text-muted-foreground/30">/</span>
+          <span className="font-mono text-sm text-muted-foreground truncate max-w-[200px]">
+            {guildId}
+          </span>
+        </header>
+
+        {/* Server ID */}
+        <div className="mb-8 animate-fade-in-delay-1">
+          <div className="font-mono text-xs text-muted-foreground/70">
+            <span className="text-muted-foreground/50">id:</span> {guildId}
           </div>
         </div>
-      </header>
 
-      {/* Content */}
-      <main className="mx-auto max-w-7xl px-6 py-8">
-        <div className="mb-8">
-          <h2 className="text-2xl font-bold">Modules</h2>
-          <p className="text-muted-foreground mt-1">
-            Enable or disable bot features for this server.
+        {/* Modules Section */}
+        <section className="animate-fade-in-delay-1">
+          <h2 className="font-mono text-xs text-muted-foreground uppercase tracking-wider mb-6">
+            Modules
+          </h2>
+          
+          <ul className="space-y-1">
+            {moduleEntries.map(([key, module], index) => (
+              <li 
+                key={key} 
+                style={{ animationDelay: `${150 + index * 50}ms` }} 
+                className="animate-fade-in opacity-0"
+              >
+                <ModuleToggle
+                  moduleName={key}
+                  module={module}
+                  enabled={moduleStatus[key]}
+                  guildId={guildId}
+                />
+              </li>
+            ))}
+          </ul>
+        </section>
+
+        {/* Footer */}
+        <footer className="mt-12 pt-6 border-t border-border animate-fade-in-delay-3">
+          <p className="font-mono text-xs text-muted-foreground/50">
+            changes save automatically
           </p>
-        </div>
-
-        <div className="grid gap-4">
-          {(Object.entries(MODULES) as [ModuleName, typeof MODULES[ModuleName]][]).map(
-            ([key, module]) => (
-              <Card key={key}>
-                <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                  <div>
-                    <CardTitle>{module.name}</CardTitle>
-                    <CardDescription>{module.description}</CardDescription>
-                  </div>
-                  <Switch checked={moduleStatus[key]} />
-                </CardHeader>
-                {module.commands.length > 0 && (
-                  <CardContent>
-                    <p className="text-sm text-muted-foreground">
-                      Commands:{' '}
-                      {module.commands.map((cmd) => (
-                        <code key={cmd} className="mx-1 rounded bg-muted px-1.5 py-0.5 text-xs">
-                          /{cmd}
-                        </code>
-                      ))}
-                    </p>
-                  </CardContent>
-                )}
-              </Card>
-            )
-          )}
-        </div>
-      </main>
+        </footer>
+      </div>
     </div>
   );
 }

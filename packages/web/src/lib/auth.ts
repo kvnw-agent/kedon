@@ -54,18 +54,51 @@ export const authOptions: NextAuthOptions = {
   },
 };
 
-export async function getUserGuilds(accessToken: string): Promise<APIGuild[]> {
-  const response = await fetch('https://discord.com/api/v10/users/@me/guilds', {
-    headers: {
-      Authorization: `Bearer ${accessToken}`,
-    },
-  });
+// Fetch guilds the bot is in using bot token
+async function getBotGuilds(): Promise<Set<string>> {
+  const botToken = process.env.BOT_TOKEN;
+  if (!botToken) {
+    console.warn('BOT_TOKEN not set, cannot check bot guild membership');
+    return new Set();
+  }
 
-  if (!response.ok) {
+  try {
+    const response = await fetch('https://discord.com/api/v10/users/@me/guilds', {
+      headers: {
+        Authorization: `Bot ${botToken}`,
+      },
+      next: { revalidate: 60 }, // Cache for 60 seconds
+    });
+
+    if (!response.ok) {
+      console.error('Failed to fetch bot guilds:', response.status);
+      return new Set();
+    }
+
+    const guilds = await response.json();
+    return new Set(guilds.map((g: { id: string }) => g.id));
+  } catch (error) {
+    console.error('Error fetching bot guilds:', error);
+    return new Set();
+  }
+}
+
+export async function getUserGuilds(accessToken: string): Promise<APIGuild[]> {
+  // Fetch user's guilds and bot's guilds in parallel
+  const [userGuildsResponse, botGuildIds] = await Promise.all([
+    fetch('https://discord.com/api/v10/users/@me/guilds', {
+      headers: {
+        Authorization: `Bearer ${accessToken}`,
+      },
+    }),
+    getBotGuilds(),
+  ]);
+
+  if (!userGuildsResponse.ok) {
     throw new Error('Failed to fetch guilds');
   }
 
-  const guilds = await response.json();
+  const guilds = await userGuildsResponse.json();
 
   // Filter to guilds where user has MANAGE_GUILD permission
   const MANAGE_GUILD = 0x20;
@@ -76,6 +109,6 @@ export async function getUserGuilds(accessToken: string): Promise<APIGuild[]> {
     })
     .map((guild: APIGuild) => ({
       ...guild,
-      botInGuild: false, // TODO: Check if bot is in guild
+      botInGuild: botGuildIds.has(guild.id),
     }));
 }

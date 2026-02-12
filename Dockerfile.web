@@ -17,10 +17,13 @@ RUN pnpm install --frozen-lockfile
 COPY packages/common ./packages/common
 COPY packages/web ./packages/web
 
+# Ensure public folder exists
+RUN mkdir -p /app/packages/web/public
+
 # Build common first
 RUN pnpm --filter @kedon/common build
 
-# Build Next.js app
+# Build Next.js app (standalone output)
 RUN pnpm --filter @kedon/web build
 
 # Production stage
@@ -31,14 +34,17 @@ WORKDIR /app
 ENV NODE_ENV=production
 ENV NEXT_TELEMETRY_DISABLED=1
 
+# Install curl for health checks
+RUN apk add --no-cache curl
+
 # Add non-root user
-RUN addgroup --system --gid 1001 nodejs
-RUN adduser --system --uid 1001 nextjs
+RUN addgroup --system --gid 1001 nodejs && \
+    adduser --system --uid 1001 nextjs
 
 # Copy built standalone app
-COPY --from=builder /app/packages/web/.next/standalone ./
-COPY --from=builder /app/packages/web/.next/static ./packages/web/.next/static
-COPY --from=builder /app/packages/web/public ./packages/web/public
+COPY --from=builder --chown=nextjs:nodejs /app/packages/web/.next/standalone ./
+COPY --from=builder --chown=nextjs:nodejs /app/packages/web/.next/static ./packages/web/.next/static
+COPY --from=builder --chown=nextjs:nodejs /app/packages/web/public ./packages/web/public
 
 USER nextjs
 
